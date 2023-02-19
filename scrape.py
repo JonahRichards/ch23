@@ -1,3 +1,6 @@
+import sqlite3
+
+import pandas
 import requests
 import time
 import random
@@ -55,4 +58,26 @@ def get_endpoints():
     endpoints_df.to_csv("csv/endpoints.csv", index=False)
 
 
-get_endpoints()
+def upload_endpoints():
+    connection = sqlite3.connect('database.db')
+    cur = connection.cursor()
+
+    endpoints = list(pandas.read_csv("csv/endpoints.csv")["endpoints"])
+
+    values = ""
+
+    for ep in endpoints:
+        values += f"('{ep}'), "
+
+    values = values[:-2]
+
+    cur.execute(f"INSERT INTO endpoints (endpoint) VALUES {values}")
+
+    connection.commit()
+    connection.close()
+
+
+def fetch_recipe():
+
+
+def fetch_recipes()
