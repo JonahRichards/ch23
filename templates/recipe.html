@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="container center2">
+  <div class="container border">
+    <form method="post">
+<table>
+  <tr>
+    <th><span>Recipe Name   </span></th>
+    <th><span>Cost per Serving   </span></th>
+    <th><span>Calories   </span></th>
+    <th><span>Protein   </span></th>
+    <th><span>Fat   </span></th>
+    <th><span>Carbs   </span></th>
+  </tr>
+      {%for i in range(0, len)%}
+  <tr>
+    <td>
+<button name="but" type="submit" class="border tablebut" value={{descs[i][6]}}><span><b>{{descs[i][0]}}</b></span></button></td>
+    <td><span>{{descs[i][1]}}</span></td>
+    <td><span>{{descs[i][2]}}</span></td>
+    <td><span>{{descs[i][3]}}</span></td>
+    <td><span>{{descs[i][4]}}</span></td>
+    <td><span>{{descs[i][5]}}</span></td>
+  </tr>
+      {%endfor%}
+</table>
+      </form>
+  </div>
+  </div>
+{% endblock %}

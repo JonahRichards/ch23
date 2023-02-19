@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS countries;
 
 CREATE TABLE countries (
     country TEXT PRIMARY KEY,
+    code TEXT,
     currency TEXT,
     rate REAL,
     food_inx REAL,

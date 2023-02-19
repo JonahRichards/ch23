@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="container center2">
+  <div class="container border">
+        <form method="post">
+    {%for i in range(0, len)%}
+      <button name="but" type="submit" class="border countbutt" value={{countries[i]}}><h2>{{countries[i]}}</h2></button>
+    {%endfor%}
+          </form>
+
+  </div>
+  </div>
+{% endblock %}

@@ -1,6 +1,7 @@
 import sqlite3
 from fractions import Fraction
 import pandas
+import pycountry
 import requests
 import time
 import random
@@ -177,6 +178,7 @@ def upload_country_data():
     for c in countries:
         try:
             row = {"country": c,
+                   "code": pycountry.countries.search_fuzzy(c)[0].alpha_2,
                    "currency": curr[c],
                    "rate": rate[c],
                    "food_inx":  indx[c + "1101100"],
@@ -190,11 +192,11 @@ def upload_country_data():
                    "sweets_inx": indx[c + "1101180"],
                    "bev_inx": indx[c + "1101200"],
                    "alcohol_inx": indx[c + "1102100"],}
-        except KeyError:
+        except (KeyError, LookupError):
             continue
         rows.append(row)
 
-    con= sqlite3.connect('database.db')
+    con = sqlite3.connect('database.db')
     con.cursor().execute("delete from countries")
     con.commit()
 
@@ -203,8 +205,6 @@ def upload_country_data():
 
     con.commit()
     con.close()
-
-
 
 
 
