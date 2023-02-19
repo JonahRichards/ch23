@@ -11,7 +11,6 @@ CREATE TABLE recipes (
     name TEXT,
     servings INTEGER,
     cost REAL,
-    cost_serving REAL,
     calories INTEGER,
     protein INTEGER,
     fat INTEGER,
@@ -21,7 +20,8 @@ CREATE TABLE recipes (
 DROP TABLE IF EXISTS ingredients;
 
 CREATE TABLE ingredients (
-    endpoint TEXT PRIMARY KEY,
-    ingredient TEXT,
+    endpoint TEXT,
+    name TEXT,
+    quantity TEXT,
     cost REAL
 );

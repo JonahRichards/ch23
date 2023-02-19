@@ -1,5 +1,5 @@
 import sqlite3
-
+from fractions import Fraction
 import pandas
 import requests
 import time
@@ -77,7 +77,93 @@ def upload_endpoints():
     connection.close()
 
 
-def fetch_recipe():
+def fetch_recipe(endpoint):
+    try:
+        con = sqlite3.connect("database.db")
+        cur = con.cursor()
+
+        r = requests.get(f"{base_url}{endpoint}")
+
+        if r.status_code == 200:
+            r = r.content.decode(r.apparent_encoding)
+            r = BeautifulSoup(r, "html.parser")
+
+            try:
+                servings = int(r.find("span", {"class": "wprm-recipe-servings-with-unit"}).contents[0].contents[0])
+            except AttributeError:
+                servings = int(r.find("div", {"class": "bb-recipe-card__meta"}).contents[1].contents[3].contents[0])
+
+            ingredients = r.find_all("ul", {"class": "wprm-recipe-ingredients"})
+
+            new_ingredients = []
+            for i in range(len(ingredients)):
+                for v in ingredients[i].contents:
+                    new_ingredients.append(v)
+
+            ingredients = new_ingredients
+
+            price = 0.0
+
+            for ingr in ingredients:
+                try:
+                    ingr_name = ingr.find("span", {"class": "wprm-recipe-ingredient-name"}).next
+                    if len(ingr_name) == 1:
+                        ingr_name = ingr_name.next
+                    ingr_name = ingr_name.split(",")[0].split("(")[0].lower().strip("*").replace("'", "")
+                    ingr_quant = float(sum(Fraction(s) for s in ingr.find("span", {"class": "wprm-recipe-ingredient-amount"}).next.split()))
+                    ingr_quant = str(round(ingr_quant / servings, 4))
+                    if ingr.find("span", {"class": "wprm-recipe-ingredient-unit"}) is not None:
+                        ingr_quant += " " + str(ingr.find("span", {"class": "wprm-recipe-ingredient-unit"}).next).lower().replace("'", "")
+                    ingr_price = ingr.find("span", {"class": "wprm-recipe-ingredient-notes"}).next.strip("()$")
+                    ingr_price = str(round(float(ingr_price) / servings, 4))
+
+                    price += float(ingr_price)
+                except AttributeError:
+                    continue
+
+                con.execute(f"insert into ingredients (endpoint, name, quantity, cost)"
+                            f"VALUES ('{endpoint}', '{ingr_name}', '{ingr_quant}', {ingr_price})")
+
+            price = round(price, 4)
+
+            try:
+                name = r.find("h1", {"class": "entry-title"}).next
+            except AttributeError:
+                name = endpoint.replace("-", " ").strip("/").title()
+
+            calories = r.find("span", {"class": "wprm-nutrition-label-text-nutrition-container-calories"}).contents[1].next
+            protein = r.find("span", {"class": "wprm-nutrition-label-text-nutrition-container-protein"}).contents[1].next
+            fat = r.find("span", {"class": "wprm-nutrition-label-text-nutrition-container-fat"}).contents[1].next
+            carbs = r.find("span", {"class": "wprm-nutrition-label-text-nutrition-container-carbohydrates"}).contents[1].next
+
+            con.execute(f"insert into recipes (endpoint, name, servings, cost, calories, protein, fat, carbs)"
+                        f"VALUES ('{endpoint}', '{name}', {servings}, {price}, {calories}, {protein}, {fat}, {carbs})")
+
+        con.commit()
+        con.close()
+
+    except Exception as e:
+        print(f"Endpoint {endpoint} failed: {e}")
 
 
-def fetch_recipes()
+def fetch_recipes():
+    con = sqlite3.connect("database.db")
+    cur = con.cursor()
+    cur.execute("delete from ingredients")
+    cur.execute("delete from recipes")
+    con.commit()
+    endpoints = list(pandas.read_sql("select * from endpoints", con)["endpoint"])
+    con.close()
+
+    for i, endpoint in enumerate(endpoints):
+        if i == -1: continue
+        time.sleep(random.randint(50, 150) / 100)
+        fetch_recipe(endpoint)
+        print(f"{i+1}/{len(endpoints)}")
+
+con = sqlite3.connect("database.db")
+
+test = pd.read_sql("select * from recipes", con)
+
+pass
+
