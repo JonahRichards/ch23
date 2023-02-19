@@ -1,10 +1,16 @@
-import flask
+from flask import Flask, render_template
+
+app = Flask(__name__)
 
 
-def print_hi(name):
+def test():
+    print("test")
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+@app.route('/')
+def hello():
+    test()
+    return render_template('index.html')
+
+
+app.run()
