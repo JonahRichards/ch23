@@ -161,9 +161,51 @@ def fetch_recipes():
         fetch_recipe(endpoint)
         print(f"{i+1}/{len(endpoints)}")
 
-con = sqlite3.connect("database.db")
 
-test = pd.read_sql("select * from recipes", con)
+def upload_country_data():
+    curr = pandas.read_csv("csv/currencies.csv")
+    rate = pandas.read_csv("csv/exchange_rates.csv")
+    indx = pandas.read_csv("csv/price_indices.csv")
 
-pass
+    curr = {r["Country"]: r["Code"] for i, r in curr.iterrows()}
+    rate = {r["Country Name"].strip(", The"): r["2017 [YR2017]"] for i, r in rate.iterrows()}
+    countries = list(indx["Country Name"].drop_duplicates())
+    indx = {r["Country Name"].strip(", The") + str(r["Series Code"]): r["2017 [YR2017]"] for i, r in indx.iterrows() if r["2017 [YR2017]"] != ".."}
+
+    rows = []
+
+    for c in countries:
+        try:
+            row = {"country": c,
+                   "currency": curr[c],
+                   "rate": rate[c],
+                   "food_inx":  indx[c + "1101100"],
+                   "grain_inx": indx[c + "1101110"],
+                   "meat_inx": indx[c + "1101120"],
+                   "fish_inx": indx[c + "1101130"],
+                   "dairy_inx": indx[c + "1101140"],
+                   "oil_inx": indx[c + "1101150"],
+                   "fruit_inx": indx[c + "1101160"],
+                   "veg_inx": indx[c + "1101170"],
+                   "sweets_inx": indx[c + "1101180"],
+                   "bev_inx": indx[c + "1101200"],
+                   "alcohol_inx": indx[c + "1102100"],}
+        except KeyError:
+            continue
+        rows.append(row)
+
+    con= sqlite3.connect('database.db')
+    con.cursor().execute("delete from countries")
+    con.commit()
+
+    df = pd.DataFrame(rows)
+    df.to_sql("countries", con, if_exists="append", index=False)
+
+    con.commit()
+    con.close()
+
+
+
+
+
 
